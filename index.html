@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Kinodagila</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:#0a0a0f; --bg2:#101018; --card:#16161f; --card2:#1d1d29; --line:rgba(255,255,255,.08);
+  --text:#f4f4f8; --muted:#9a9aae; --red:#f00000; --red2:#ff4040; --gold:#f5c451;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#app{height:100%;display:flex;flex-direction:column;max-width:560px;margin:0 auto;position:relative}
+
+/* ───── Header ───── */
+header{padding:calc(var(--safe-t) + 10px) 16px 10px;display:flex;align-items:center;gap:10px;background:linear-gradient(var(--bg),rgba(10,10,15,.0));z-index:5}
+.logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--red),#4d0000);box-shadow:0 6px 18px rgba(240,0,0,.35);overflow:hidden;flex:none}
+.logo img{width:100%;height:100%;object-fit:cover}
+.brand{font-weight:800;font-size:19px;letter-spacing:.2px}
+.brand span{color:var(--red2)}
+.hd-right{margin-left:auto;display:flex;gap:8px}
+.icon-btn{width:38px;height:38px;border-radius:12px;background:var(--card);display:grid;place-items:center;border:1px solid var(--line)}
+.icon-btn svg{width:19px;height:19px}
+
+/* ───── View ───── */
+#view{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(86px + var(--safe-b));scroll-behavior:smooth}
+#view::-webkit-scrollbar{display:none}
+.sec{margin-top:22px}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;padding:0 16px 10px}
+.sec-h h2{font-size:18px;font-weight:800}
+.sec-h button{font-size:13px;color:var(--red2);font-weight:600}
+.row{display:flex;gap:12px;overflow-x:auto;padding:0 16px 4px;scroll-snap-type:x proximity}
+.row::-webkit-scrollbar{display:none}
+
+/* ───── Poster ───── */
+.poster{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:2/3;background:var(--card);isolation:isolate}
+.poster .gen{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:10px;z-index:0}
+.poster .gen b{font-size:60px;line-height:.8;opacity:.18;font-weight:900;position:absolute;top:10px;right:10px}
+.poster .gen i{font-style:normal;font-weight:800;font-size:13px;line-height:1.2;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.poster::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 55%,rgba(0,0,0,.55));z-index:2;pointer-events:none}
+.badge{position:absolute;top:8px;left:8px;z-index:3;font-size:10px;font-weight:800;padding:3px 7px;border-radius:7px;background:var(--red);letter-spacing:.4px}
+.rate{position:absolute;bottom:8px;left:8px;z-index:3;font-size:11px;font-weight:700;padding:3px 7px;border-radius:7px;background:rgba(0,0,0,.6);backdrop-filter:blur(6px)}
+.rate::before{content:"★ ";color:var(--gold)}
+
+.card{flex:none;width:128px;scroll-snap-align:start;text-align:left}
+.card .t{margin-top:7px;font-size:13px;font-weight:700;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .s{font-size:11px;color:var(--muted);margin-top:2px}
+.card:active{transform:scale(.97)}
+.card.top{width:150px;position:relative}
+.card.top .num{position:absolute;left:-6px;bottom:34px;z-index:4;font-size:64px;font-weight:900;line-height:1;color:transparent;-webkit-text-stroke:2px var(--gold);text-shadow:0 4px 14px rgba(0,0,0,.7)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 16px}
+.grid .card{width:auto}
+
+/* ───── Hero ───── */
+.hero{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding:6px 16px 0}
+.hero::-webkit-scrollbar{display:none}
+.slide{flex:none;width:calc(100% - 4px);scroll-snap-align:center;border-radius:22px;overflow:hidden;position:relative;aspect-ratio:16/11;background:var(--card)}
+.slide .bg{position:absolute;inset:0}
+.slide .bg img{width:100%;height:100%;object-fit:cover}
+.slide::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 20%,rgba(10,10,15,.95))}
+.slide .in{position:absolute;left:16px;right:16px;bottom:16px;z-index:2}
+.tag{display:inline-block;font-size:11px;font-weight:800;color:#000;background:var(--gold);padding:3px 8px;border-radius:7px;margin-bottom:8px}
+.slide h3{font-size:24px;font-weight:900;line-height:1.1;text-shadow:0 2px 14px rgba(0,0,0,.6)}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:12px;color:#d6d6e2}
+.meta span+span::before{content:"•";margin-right:8px;color:var(--muted)}
+.btns{display:flex;gap:10px;margin-top:12px}
+.btn{height:42px;padding:0 18px;border-radius:13px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:7px;justify-content:center}
+.btn.red{background:linear-gradient(135deg,var(--red),#a80000);box-shadow:0 8px 22px rgba(240,0,0,.4)}
+.btn.glass{background:rgba(255,255,255,.14);backdrop-filter:blur(8px)}
+.btn:active{transform:scale(.97)}
+.dots{display:flex;justify-content:center;gap:6px;margin-top:10px}
+.dots i{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.25);transition:.3s}
+.dots i.on{width:20px;background:var(--red2)}
+
+/* ───── Chips ───── */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:14px 16px 0}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--muted)}
+.chip.on{background:var(--red);border-color:var(--red);color:#fff}
+
+/* ───── Search ───── */
+.search{margin:6px 16px 0;display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 14px;height:46px}
+.search svg{width:18px;height:18px;opacity:.6;flex:none}
+.search input{flex:1;background:none;border:0;outline:0;color:var(--text);font-size:15px;height:100%}
+.empty{text-align:center;color:var(--muted);padding:60px 30px;font-size:14px;line-height:1.5}
+.empty .em{font-size:46px;margin-bottom:10px}
+.list-h{padding:18px 16px 12px;font-size:20px;font-weight:800;display:flex;align-items:center;gap:10px}
+
+/* ───── Genres ───── */
+.g-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:6px 16px}
+.g-card{border-radius:18px;padding:16px;height:92px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;position:relative;overflow:hidden;border:1px solid var(--line)}
+.g-card .e{font-size:26px}
+.g-card b{font-size:15px}
+.g-card small{color:rgba(255,255,255,.7);font-size:11px}
+.g-card:active{transform:scale(.98)}
+
+/* ───── Profile ───── */
+.prof{padding:18px 16px;text-align:center}
+.avatar{width:84px;height:84px;border-radius:50%;margin:0 auto 10px;display:grid;place-items:center;font-size:34px;font-weight:800;background:linear-gradient(135deg,var(--red),#4d0000);box-shadow:0 10px 28px rgba(240,0,0,.35);overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.prof h2{font-size:20px}
+.prof p{color:var(--muted);font-size:13px;margin-top:2px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px;margin-top:6px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 6px;text-align:center}
+.stat b{display:block;font-size:20px;color:var(--gold)}
+.stat span{font-size:11px;color:var(--muted)}
+.menu{margin:18px 16px 0;background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.mi{width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;text-align:left;border-bottom:1px solid var(--line)}
+.mi:last-child{border:0}
+.mi .ic{width:34px;height:34px;border-radius:10px;background:var(--card2);display:grid;place-items:center;font-size:17px}
+.mi div{flex:1;font-size:14px;font-weight:600}
+.mi small{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:2px}
+.sw{width:42px;height:24px;border-radius:12px;background:#3a3a4a;position:relative;transition:.25s;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.25s}
+.sw.on{background:var(--red)}
+.sw.on::after{left:21px}
+.ver{text-align:center;color:var(--muted);font-size:11px;margin-top:18px}
+
+/* ───── Bottom nav ───── */
+nav{position:absolute;left:0;right:0;bottom:0;padding:8px 10px calc(8px + var(--safe-b));background:rgba(12,12,18,.88);backdrop-filter:blur(18px);border-top:1px solid var(--line);display:flex;z-index:10}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;color:var(--muted);font-size:10.5px;font-weight:600;position:relative}
+nav button svg{width:23px;height:23px;transition:.2s}
+nav button.on{color:var(--red2)}
+nav button.on svg{transform:translateY(-2px)}
+nav button.on::before{content:"";position:absolute;top:-9px;width:26px;height:3px;border-radius:2px;background:var(--red2)}
+nav .cnt{position:absolute;top:1px;left:calc(50% + 6px);background:var(--red);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;padding:0 4px}
+
+/* ───── Detail sheet ───── */
+#sheet{position:fixed;inset:0;z-index:50;display:none}
+#sheet.open{display:block}
+.sh-bg{position:absolute;inset:0;background:rgba(0,0,0,.6);opacity:0;transition:.3s}
+.sh-body{position:absolute;left:0;right:0;bottom:0;top:0;max-width:560px;margin:0 auto;background:var(--bg);transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1);overflow-y:auto;padding-bottom:calc(96px + var(--safe-b))}
+.sh-body::-webkit-scrollbar{display:none}
+#sheet.show .sh-bg{opacity:1}
+#sheet.show .sh-body{transform:none}
+.d-top{position:relative;height:340px}
+.d-top .bg{position:absolute;inset:0;filter:blur(0)}
+.d-top .bg img{width:100%;height:100%;object-fit:cover}
+.d-top::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(10,10,15,.35),transparent 30%,var(--bg) 96%)}
+.d-nav{position:absolute;top:calc(var(--safe-t) + 12px);left:14px;right:14px;display:flex;justify-content:space-between;z-index:3}
+.d-nav .icon-btn{background:rgba(0,0,0,.45);backdrop-filter:blur(10px);border-color:rgba(255,255,255,.12)}
+.d-info{margin-top:-96px;position:relative;z-index:4;padding:0 18px}
+.d-info h1{font-size:26px;font-weight:900;line-height:1.1}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.pill{font-size:12px;font-weight:600;padding:6px 11px;border-radius:10px;background:var(--card);border:1px solid var(--line)}
+.pill.g{color:var(--gold)}
+.d-info h4{margin-top:20px;font-size:15px}
+.d-info p{margin-top:6px;color:#c9c9d6;font-size:14px;line-height:1.55}
+.code-box{margin-top:18px;display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px dashed rgba(255,255,255,.2);border-radius:14px;padding:12px 16px}
+.code-box small{color:var(--muted);font-size:11px}
+.code-box b{font-size:18px;letter-spacing:1px;color:var(--gold)}
+.d-act{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;padding:12px 16px calc(12px + var(--safe-b));background:linear-gradient(transparent,var(--bg) 35%);z-index:6;display:flex;gap:10px}
+.d-act .btn.red{flex:1;height:52px;font-size:16px;border-radius:16px}
+.d-act .btn.sq{width:52px;height:52px;padding:0;border-radius:16px;background:var(--card2);border:1px solid var(--line)}
+.fav-on{color:var(--red2)}
+
+/* ───── Toast + skeleton ───── */
+#toast{position:fixed;left:50%;bottom:calc(100px + var(--safe-b));transform:translate(-50%,20px);background:#25253a;border:1px solid var(--line);padding:11px 18px;border-radius:14px;font-size:13px;font-weight:600;opacity:0;transition:.3s;z-index:99;pointer-events:none;max-width:88%;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+.sk{background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:14px}
+@keyframes sk{to{background-position:-200% 0}}
+.fade{animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.logo{width:auto;height:38px;background:none;box-shadow:none;border-radius:0}.logo img{height:38px;width:auto;object-fit:contain}.brand{font-weight:900;letter-spacing:.5px}
+.adb{display:flex;align-items:center;width:calc(100% - 32px);margin:16px 16px 0;height:96px;border-radius:16px;border:1px solid rgba(240,0,0,.5);background:#1a0808 center/cover;position:relative;overflow:hidden;padding:0 16px;font-weight:800;font-size:17px;text-align:left}.adb::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#000c,#0003)}.adb span{position:relative}.adb small{position:absolute;top:6px;right:10px;font-size:10px;color:#ccc;font-weight:600;z-index:1}
+#gate{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:20px}#gate.open{display:flex}.gbox{width:100%;max-width:400px;background:#120707;border:1px solid var(--red);border-radius:22px;padding:22px;display:flex;flex-direction:column;gap:12px}.gbox h3{font-size:22px;line-height:1.1}.gbox p{color:var(--muted);font-size:14px}.grow{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-weight:600;font-size:14px}.ok{color:#5be584}.wide{width:100%;height:50px}.btn.sm{height:34px;padding:0 14px;font-size:13px;border-radius:10px}
+.ab{padding:0 16px;display:flex;flex-direction:column;gap:12px}.fl{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}.fl small{font-weight:400;color:#8a8aa0;line-height:1.4}.fi{height:46px;border-radius:12px;background:var(--card);border:1px solid var(--line);color:var(--text);padding:0 14px;font:inherit;font-size:15px;width:100%;outline:0}.fi:focus{border-color:var(--red)}textarea.fi{height:100px;padding:12px;resize:vertical}.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.arow{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}.arow .ai{flex:1;min-width:0;font-size:14px}.arow .ai small{display:block;color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis}.arow>button:not(.sw){width:36px;height:36px;border-radius:10px;background:var(--card2)}.abar{height:8px;border-radius:4px;background:var(--red)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo" id="logo"></div>
+    <div class="brand" id="brand"></div>
+    <div class="hd-right">
+      <button class="icon-btn" data-go="search" aria-label="Qidiruv">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </button>
+    </div>
+  </header>
+  <main id="view"></main>
+  <nav id="nav"></nav>
+</div>
+
+<div id="sheet"><div class="sh-bg" id="shbg"></div><div class="sh-body" id="shbody"></div></div>
+<div id="gate"></div>
+<div id="toast"></div>
+
+<script>
+/* ═══════════════ SOZLAMALAR (ertaga shu yerni o'zgartiramiz) ═══════════════ */
+const CONFIG = {
+  BRAND_1: "KINO",            // brend nomi: oq qism
+  BRAND_2: "DAGILA",         // brend nomi: qizil qism
+  LOGO_URL: "",               // logo rasmi (masalan "logo.png"). Bo'sh bo'lsa — vaqtincha belgi
+  API_URL: "",                // masalan "https://api.sizning-domen.uz". Bo'sh bo'lsa — DEMO rejim
+  BOT_USERNAME: "kinodagilar_bot",
+  SUPPORT_URL: "https://t.me/",   // aloqa uchun admin havolasi
+};
+
+/* ═══════════════ DEMO MA'LUMOTLAR (API ulangach avtomatik o'chadi) ═══════════════ */
+const GENRES = [
+  {n:"Jangari",e:"💥",h:350},{n:"Komediya",e:"😂",h:42},{n:"Drama",e:"🎭",h:265},{n:"Qo'rqinchli",e:"👻",h:290},
+  {n:"Fantastika",e:"🚀",h:200},{n:"Multfilm",e:"🧸",h:150},{n:"Triller",e:"🕵️",h:10},{n:"Sarguzasht",e:"🧭",h:30},
+];
+const D = [
+ // kod, nom, yil, janr, reyting, davomiylik, ko'rishlar, tavsif
+ ["101","Qora Soyalar",2024,"Jangari",8.4,128,48200,"Sobiq maxsus xizmat xodimi o'tmishidagi sirlarni yashirish uchun shahar bo'ylab xavfli poygaga otlanadi."],
+ ["102","Oxirgi Reys",2023,"Triller",7.9,112,39100,"Uchish paytida samolyotdagi yo'lovchilardan biri g'oyib bo'ladi. Hamma gumon ostida."],
+ ["103","Quvnoq Oila",2024,"Komediya",7.2,98,35400,"Uch avlod bir uyda yashashga majbur bo'lganda kulgili va yuragingizga yaqin voqealar boshlanadi."],
+ ["104","Yulduzlar Ortida",2025,"Fantastika",8.8,148,61300,"Insoniyatning so'nggi kemasi yangi sayyora izlab, noma'lum galaktika sari yo'l oladi."],
+ ["105","Tungi Qo'ng'iroq",2022,"Qo'rqinchli",6.9,101,29800,"Eski uyga ko'chib kelgan oila har kecha soat 3:00 da kelayotgan qo'ng'iroqdan qo'rqa boshlaydi."],
+ ["106","Kichik Jasur",2024,"Multfilm",8.1,92,44700,"Kichkina tulki o'z qishlog'ini qutqarish uchun katta o'rmonga sayohatga chiqadi."],
+ ["107","Sukunat Vodiysi",2023,"Drama",8.6,134,33900,"Uzoq qishloqdagi o'qituvchi va uning shogirdlari haqida ta'sirli hikoya."],
+ ["108","Oltin Xarita",2025,"Sarguzasht",7.7,119,41500,"Uch do'st ota-bobolaridan qolgan xarita bilan afsonaviy xazina izlab chiqadi."],
+ ["109","Temir Qalb",2024,"Jangari",8.0,125,52800,"Robotlar urushida yagona insoniy qalb ega jangchi shahar taqdirini hal qiladi."],
+ ["110","Yolg'on Chegarasi",2022,"Triller",7.5,108,27600,"Jurnalist bitta intervyu tufayli katta fitna izlariga duch keladi."],
+ ["111","Do'stlik Kuni",2023,"Komediya",7.0,95,31200,"Maktab do'stlari 20 yildan keyin uchrashadi va hamma narsa xato ketadi."],
+ ["112","Zulmat Sirlari",2024,"Qo'rqinchli",7.3,104,36000,"Yopiq maktab yertolasida topilgan kundalik sirli hodisalarni boshlab yuboradi."],
+ ["113","Mars Xronikasi",2025,"Fantastika",8.3,141,47100,"Birinchi mars koloniyasi aloqani yo'qotadi. Qutqaruv guruhi yo'lga chiqadi."],
+ ["114","Bahor Hikoyasi",2023,"Drama",7.8,116,25400,"Ikki begona yurak kutilmagan sharoitda uchrashadi va hayotlari o'zgaradi."],
+ ["115","Cho'l Sardori",2022,"Sarguzasht",7.4,122,23800,"Karvon rahbari xavfli cho'l bo'ylab qimmatbaho yukni yetkazib berishi kerak."],
+ ["116","Sehrli Maktab",2024,"Multfilm",7.9,89,38500,"Oddiy bola sehrli maktabga tushib, yangi do'stlar orttiradi."],
+ ["117","Soya Ovchisi",2025,"Jangari",8.2,131,58900,"Yolg'iz ovchi shaharni qoplagan qorong'u kuchlarga qarshi kurashadi."],
+ ["118","Kulgi Ustaxonasi",2024,"Komediya",7.6,99,30100,"Ishsiz aktyorlar bir guruh bo'lib o'z teatrini ochishga harakat qiladi."],
+].map((a,i)=>({code:a[0],title:a[1],year:a[2],genre:a[3],rating:a[4],duration:a[5],views:a[6],desc:a[7],poster:"",isNew:i>=12||i%5===0,added:i}));
+
+/* ═══════════════ YORDAMCHI ═══════════════ */
+const tg = window.Telegram?.WebApp;
+const $ = s => document.querySelector(s);
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = n => n>=1e6?(n/1e6).toFixed(1)+"M":n>=1000?(n/1000).toFixed(1)+"K":String(n);
+const hrs = m => `${Math.floor(m/60)} soat ${m%60} daq`;
+const store = {
+  get(k,d){try{return JSON.parse(localStorage.getItem("kd_"+k))??d}catch{return d}},
+  set(k,v){try{localStorage.setItem("kd_"+k,JSON.stringify(v))}catch{}}
+};
+const state = {
+  tab:"home", movies:[], favs:new Set(store.get("favs",[])), watched:store.get("watched",[]),
+  genre:null, q:"", haptic:store.get("haptic",true), demo:!CONFIG.API_URL,
+};
+const haptic = (t="light") => { if(state.haptic) tg?.HapticFeedback?.impactOccurred(t); };
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("on"),2200)}
+const genreInfo = n => GENRES.find(g=>g.n===n) || {e:"🎬",h:350};
+const byCode = c => state.movies.find(m=>m.code===c);
+
+async function api(path, body){
+  const r = await fetch(CONFIG.API_URL+path,{
+    method:body?"POST":"GET",
+    headers:{"Content-Type":"application/json","X-Init-Data":tg?.initData||""},
+    body:body?JSON.stringify(body):undefined});
+  if(!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+/* ═══════════════ KOMPONENTLAR ═══════════════ */
+function poster(m, extra=""){
+  const h = genreInfo(m.genre).h;
+  const img = m.poster ? `<img loading="lazy" src="${esc(m.poster)}" alt="" onerror="this.remove()">` : "";
+  return `<div class="poster" ${extra}>
+    <div class="gen" style="background:linear-gradient(155deg,hsl(${h} 70% 40%),hsl(${(h+50)%360} 60% 12%))">
+      <b>${esc(m.title[0])}</b><i>${esc(m.title)}</i></div>${img}
+    ${m.isNew?'<span class="badge">YANGI</span>':""}
+    <span class="rate">${m.rating.toFixed(1)}</span></div>`;
+}
+const card = (m,cls="",num="") => `<button class="card ${cls}" data-open="${esc(m.code)}">${num}${poster(m)}
+  <div class="t">${esc(m.title)}</div><div class="s">${m.year} • ${esc(m.genre)}</div></button>`;
+const heroBg = m => { const h=genreInfo(m.genre).h;
+  return `<div class="bg" style="background:linear-gradient(150deg,hsl(${h} 75% 42%),hsl(${(h+60)%360} 60% 10%))">${m.poster?`<img src="${esc(m.poster)}" alt="" onerror="this.remove()">`:""}</div>`; };
+const row = (title,list,cls="",numbered=false,more="") => list.length ? `<section class="sec fade">
+  <div class="sec-h"><h2>${title}</h2>${more}</div>
+  <div class="row">${list.map((m,i)=>card(m,cls,numbered?`<span class="num">${i+1}</span>`:"")).join("")}</div></section>` : "";
+const empty = (e,t) => `<div class="empty fade"><div class="em">${e}</div>${t}</div>`;
+
+const ICONS = {
+  home:'<path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  genres:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
+  favs:'<path d="M12 21s-7-4.6-9.3-9.2C1.2 8.6 3 5 6.4 5c2 0 3.4 1 4.4 2.5h.4C12.2 6 13.6 5 15.6 5 19 5 20.8 8.6 21.3 11.8 19 16.4 12 21 12 21z"/>',
+  profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>',
+};
+function renderNav(){
+  const tabs=[["home","Bosh"],["search","Qidiruv"],["genres","Janrlar"],["favs","Sevimli"],["profile","Profil"],...(state.isAdmin?[["admin","Admin"]]:[])];
+  $("#nav").innerHTML = tabs.map(([k,l])=>`<button data-go="${k}" class="${state.tab===k?"on":""}">
+    <svg viewBox="0 0 24 24" fill="${k==="favs"&&state.tab===k?"currentColor":"none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</svg>${l}
+    ${k==="favs"&&state.favs.size?`<span class="cnt">${state.favs.size}</span>`:""}</button>`).join("");
+}
+
+/* ═══════════════ SAHIFALAR ═══════════════ */
+function pageHome(){
+  const ms = state.movies;
+  const hero = [...ms].sort((a,b)=>b.rating-a.rating).slice(0,5);
+  const top = [...ms].sort((a,b)=>b.views-a.views).slice(0,10);
+  const fresh = [...ms].filter(m=>m.isNew).sort((a,b)=>b.added-a.added).slice(0,10);
+  const gset = GENRES.filter(g=>ms.some(m=>m.genre===g.n));
+  const slides = hero.map((m,i)=>`<div class="slide" data-open="${esc(m.code)}">${heroBg(m)}
+    <div class="in"><span class="tag">⭐ ${m.rating.toFixed(1)} • TAVSIYA</span><h3>${esc(m.title)}</h3>
+    <div class="meta"><span>${m.year}</span><span>${esc(m.genre)}</span><span>${hrs(m.duration)}</span></div>
+    <div class="btns"><span class="btn red">▶ Ko'rish</span><span class="btn glass">Batafsil</span></div></div></div>`).join("");
+  return `<div class="hero" id="hero">${slides}</div>
+  <div class="dots" id="dots">${hero.map((_,i)=>`<i class="${i?"":"on"}"></i>`).join("")}</div>
+  <div class="chips">${gset.map(g=>`<button class="chip" data-genre="${esc(g.n)}">${g.e} ${esc(g.n)}</button>`).join("")}</div>
+  ${bannerHTML()}${row("🔥 Top 10",top,"top",true)}
+  ${row("🆕 Yangi qo'shilganlar",fresh)}
+  ${gset.slice(0,4).map(g=>row(`${g.e} ${g.n}`,ms.filter(m=>m.genre===g.n),"",false,`<button data-genre="${esc(g.n)}">Hammasi ›</button>`)).join("")}`;
+}
+function pageSearch(){
+  return `<div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Kino nomi yoki kodi..." value="${esc(state.q)}" autocomplete="off"></div>
+    <div id="results"></div>`;
+}
+function fillResults(){
+  const q=state.q.trim().toLowerCase(), box=$("#results"); if(!box) return;
+  if(!q){
+    const pop=[...state.movies].sort((a,b)=>b.views-a.views).slice(0,9);
+    box.innerHTML=`<div class="list-h">🔥 Ommabop</div><div class="grid">${pop.map(m=>card(m)).join("")}</div>`; return;
+  }
+  const res=state.movies.filter(m=>m.title.toLowerCase().includes(q)||m.code===q||m.genre.toLowerCase().includes(q));
+  box.innerHTML = res.length ? `<div class="list-h">Topildi: ${res.length}</div><div class="grid">${res.map(m=>card(m)).join("")}</div>`
+    : empty("🔎",`«${esc(state.q)}» bo'yicha kino topilmadi.<br>Boshqa nom yoki kod bilan urinib ko'ring.`);
+}
+function pageGenres(){
+  if(state.genre){
+    const list=state.movies.filter(m=>m.genre===state.genre), g=genreInfo(state.genre);
+    return `<div class="list-h"><button class="icon-btn" data-genre="">‹</button>${g.e} ${esc(state.genre)}</div>
+      ${list.length?`<div class="grid">${list.map(m=>card(m)).join("")}</div>`:empty("🎬","Bu janrda hozircha kino yo'q.")}`;
+  }
+  return `<div class="list-h">🎭 Janrlar</div><div class="g-grid">${GENRES.map(g=>{
+    const c=state.movies.filter(m=>m.genre===g.n).length;
+    return `<button class="g-card" data-genre="${esc(g.n)}" style="background:linear-gradient(150deg,hsl(${g.h} 65% 32%),hsl(${(g.h+40)%360} 55% 12%))">
+      <span class="e">${g.e}</span><span><b>${esc(g.n)}</b><br><small>${c} ta kino</small></span></button>`}).join("")}</div>`;
+}
+function pageFavs(){
+  const list=state.movies.filter(m=>state.favs.has(m.code));
+  return `<div class="list-h">❤️ Sevimlilar</div>`+(list.length?`<div class="grid">${list.map(m=>card(m)).join("")}</div>`
+    :empty("💔","Hali sevimli kino yo'q.<br>Kino sahifasidagi ❤️ tugmasini bosing."));
+}
+function pageProfile(){
+  const u=tg?.initDataUnsafe?.user||{first_name:"Mehmon",username:""};
+  const name=[u.first_name,u.last_name].filter(Boolean).join(" ");
+  return `<div class="prof"><div class="avatar">${u.photo_url?`<img src="${esc(u.photo_url)}" alt="">`:esc((u.first_name||"M")[0])}</div>
+    <h2>${esc(name)}</h2><p>${u.username?"@"+esc(u.username):"Kinodagilar a'zosi"}</p></div>
+  <div class="stats"><div class="stat"><b>${state.favs.size}</b><span>Sevimli</span></div>
+    <div class="stat"><b>${state.watched.length}</b><span>Ko'rilgan</span></div>
+    <div class="stat"><b>${state.movies.length}</b><span>Jami kino</span></div></div>
+  <div class="menu">
+    <button class="mi" data-act="request"><span class="ic">📝</span><div>Kino so'rash<small>Topolmagan kinongizni yozing</small></div>›</button>
+    <button class="mi" data-act="share"><span class="ic">📤</span><div>Do'stlarga ulashish<small>Botni do'stlaringizga yuboring</small></div>›</button>
+    <button class="mi" data-act="haptic"><span class="ic">📳</span><div>Vibratsiya</div><span class="sw ${state.haptic?"on":""}"></span></button>
+    ${state.demo?`<button class="mi" data-act="adm"><span class="ic">🛠</span><div>Admin rejimi (demo)<small>Haqiqiy botda faqat admin ID uchun ochiladi</small></div><span class="sw ${state.isAdmin?"on":""}"></span></button>`:""}<button class="mi" data-act="support"><span class="ic">💬</span><div>Aloqa<small>Savol va takliflar uchun</small></div>›</button>
+  </div><div class="ver">Kinodagilar • v1.0${state.demo?" • DEMO rejim":""}</div>`;
+}
+
+function render(){
+  const v=$("#view");
+  const pages={home:pageHome,search:pageSearch,genres:pageGenres,favs:pageFavs,profile:pageProfile,admin:pageAdmin};
+  v.innerHTML=`<div class="fade">${pages[state.tab]()}</div>`;
+  renderNav();
+  if(state.tab==="search"){fillResults();const q=$("#q");q.oninput=e=>{state.q=e.target.value;fillResults()};}
+  if(state.tab==="home") setupHero();
+  if(state.tab==="admin"&&state.at==="movies"){const q=$("#aq");if(q)q.oninput=e=>{const t=e.target.value.toLowerCase();document.querySelectorAll(".arow[data-s]").forEach(x=>x.style.display=x.dataset.s.includes(t)?"":"none")}}
+}
+function go(tab){ if(state.tab!==tab||state.genre){state.tab=tab;state.genre=null;haptic();render();$("#view").scrollTop=0;} }
+
+let heroTimer;
+function setupHero(){
+  const h=$("#hero"); if(!h) return;
+  const dots=[...document.querySelectorAll("#dots i")];
+  h.onscroll=()=>{const i=Math.round(h.scrollLeft/(h.firstElementChild.offsetWidth+12));dots.forEach((d,k)=>d.classList.toggle("on",k===i))};
+  clearInterval(heroTimer);
+  heroTimer=setInterval(()=>{ if(state.tab!=="home"||!h.isConnected) return clearInterval(heroTimer);
+    const w=h.firstElementChild.offsetWidth+12, n=h.children.length, i=(Math.round(h.scrollLeft/w)+1)%n;
+    h.scrollTo({left:i*w,behavior:"smooth"}); },4500);
+}
+
+/* ═══════════════ KINO SAHIFASI ═══════════════ */
+function openMovie(code){
+  const m=byCode(code); if(!m) return;
+  haptic();
+  const sim=state.movies.filter(x=>x.genre===m.genre&&x.code!==m.code).slice(0,8);
+  const fav=state.favs.has(m.code);
+  $("#shbody").innerHTML=`<div class="d-top">${heroBg(m)}
+    <div class="d-nav"><button class="icon-btn" data-close aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="icon-btn" data-share="${esc(m.code)}" aria-label="Ulashish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg></button></div></div>
+  <div class="d-info"><h1>${esc(m.title)}</h1>
+    <div class="pills"><span class="pill g">★ ${m.rating.toFixed(1)}</span><span class="pill">${m.year}</span><span class="pill">${esc(m.genre)}</span><span class="pill">${hrs(m.duration)}</span><span class="pill">👁 ${fmt(m.views)}</span></div>
+    <h4>Kino haqida</h4><p>${esc(m.desc)}</p>
+    <div class="code-box"><div><small>Kino kodi</small><br><b>${esc(m.code)}</b></div><button class="btn glass" data-copy="${esc(m.code)}">📋 Nusxa</button></div>
+  </div>${sim.length?`<section class="sec"><div class="sec-h"><h2>O'xshash kinolar</h2></div><div class="row">${sim.map(x=>card(x)).join("")}</div></section>`:""}
+  <div class="d-act"><button class="btn red" data-watch="${esc(m.code)}">▶ Botda ko'rish</button>
+    <button class="btn sq ${fav?"fav-on":""}" data-fav="${esc(m.code)}" aria-label="Sevimli"><svg width="24" height="24" viewBox="0 0 24 24" fill="${fav?"currentColor":"none"}" stroke="currentColor" stroke-width="2" stroke-linejoin="round">${ICONS.favs}</svg></button></div>`;
+  const s=$("#sheet"); s.classList.add("open"); requestAnimationFrame(()=>requestAnimationFrame(()=>s.classList.add("show")));
+  $("#shbody").scrollTop=0;
+  tg?.BackButton?.show();
+}
+function closeSheet(){
+  const s=$("#sheet"); s.classList.remove("show"); setTimeout(()=>s.classList.remove("open"),330); tg?.BackButton?.hide();
+}
+async function watch(code){
+  haptic("medium");
+  const m=byCode(code);
+  if(needGate()) return openGate(code);
+  if(!state.watched.includes(code)){state.watched.push(code);store.set("watched",state.watched);}
+  if(state.demo){ m.views++;store.set("movies",state.movies);toast("🎬 DEMO: haqiqiy rejimda kino botga yuboriladi"); return; }
+  try{
+    const r=await api("/api/watch",{code});
+    if(r.need_sub){ state.subOk=false; store.set("subOk",false); return openGate(code); }
+    toast("✅ Kino botga yuborildi!"); setTimeout(()=>tg?.close(),700);
+  }catch{ toast("⚠️ Xatolik. Keyinroq urinib ko'ring"); }
+}
+function toggleFav(code){
+  state.favs.has(code)?state.favs.delete(code):state.favs.add(code);
+  store.set("favs",[...state.favs]); haptic(); renderNav();
+  const b=document.querySelector(`[data-fav="${code}"]`);
+  if(b){const on=state.favs.has(code);b.classList.toggle("fav-on",on);b.querySelector("svg").setAttribute("fill",on?"currentColor":"none");}
+  toast(state.favs.has(code)?"❤️ Sevimlilarga qo'shildi":"Sevimlilardan olib tashlandi");
+  if(state.tab==="favs") render();
+}
+function shareMovie(code){
+  const m=byCode(code), link=`https://t.me/${CONFIG.BOT_USERNAME}?start=${code}`;
+  const url=`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("🎬 "+m.title+" — Kinodagilar botida ko'ring!")}`;
+  tg?.openTelegramLink?tg.openTelegramLink(url):window.open(url,"_blank");
+}
+
+/* ═══════════════ HODISALAR ═══════════════ */
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-open],[data-go],[data-genre],[data-close],[data-watch],[data-fav],[data-share],[data-copy],[data-act]");
+  if(!t) return;
+  const d=t.dataset;
+  if(d.open!==undefined) return openMovie(d.open);
+  if(d.go) return go(d.go);
+  if(d.genre!==undefined){ haptic(); state.tab="genres"; state.genre=d.genre||null; render(); $("#view").scrollTop=0; return; }
+  if(t.hasAttribute("data-close")) return closeSheet();
+  if(d.watch) return watch(d.watch);
+  if(d.fav) return toggleFav(d.fav);
+  if(d.share) return shareMovie(d.share);
+  if(d.copy){ navigator.clipboard?.writeText(d.copy); haptic(); return toast("📋 Kod nusxalandi: "+d.copy); }
+  if(d.act==="haptic"){ state.haptic=!state.haptic; store.set("haptic",state.haptic); render(); return; }
+  if(d.act==="share"){ const l=`https://t.me/${CONFIG.BOT_USERNAME}`; const u=`https://t.me/share/url?url=${encodeURIComponent(l)}&text=${encodeURIComponent("🎬 Kinodagilar — eng yangi kinolar shu yerda!")}`; return tg?.openTelegramLink?tg.openTelegramLink(u):window.open(u,"_blank"); }
+  if(d.act==="support"){ return tg?.openTelegramLink?tg.openTelegramLink(CONFIG.SUPPORT_URL):window.open(CONFIG.SUPPORT_URL,"_blank"); }
+  if(d.act==="request"){
+    const text=prompt("Qaysi kinoni qo'shishimizni xohlaysiz?"); if(!text) return;
+    if(state.demo){state.reqs.unshift({id:Date.now(),text,by:"@demo"});persist("reqs",state.reqs);return toast("📝 So'rov adminlarga yuborildi")}
+    api("/api/request",{text}).then(()=>toast("✅ So'rovingiz adminlarga yuborildi")).catch(()=>toast("⚠️ Xatolik"));
+  }
+});
+$("#shbg").onclick=closeSheet;
+tg?.BackButton?.onClick(closeSheet);
+
+/* ═══════════════ ADMIN PANEL + MAJBURIY OBUNA ═══════════════
+   Demo rejimda hammasi shu qurilmada saqlanadi. API ulangach:
+   GET /api/config -> {admin,cfg,channels,banner,admins,reqs} (admin = initData bo'yicha SERVERDA tekshiriladi)
+   POST /api/check-sub -> {ok}  (bot getChatMember orqali)   POST /api/admin/<movies|channels|banner|cfg|admins|reqs|broadcast> */
+const KP='data:image/png;base64,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';
+Object.assign(CONFIG,store.get("cfg",{}));
+Object.assign(state,{channels:store.get("channels",[{id:1,name:"Kinodagila rasmiy",url:"https://t.me/",on:true},{id:2,name:"Yangi kinolar",url:"https://t.me/",on:true}]),
+ banner:store.get("banner",{on:true,text:"Reklama uchun joy",img:"",url:""}),admins:store.get("admins",["@sizning_id"]),
+ reqs:store.get("reqs",[{id:1,text:"Yangi komediya kinolari",by:"@user1"},{id:2,text:"Eski hind kinolari",by:"@user2"}]),
+ isAdmin:false,at:"dash",edit:null,subOk:store.get("subOk",false),visited:new Set(),gcode:null});
+ICONS.admin='<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>';
+const persist=(k,v)=>{store.set(k,v);if(!state.demo)api("/api/admin/"+k,{data:v}).catch(()=>toast("⚠️ Serverga saqlanmadi"))};
+const nextCode=()=>String(Math.max(100,...state.movies.map(m=>+m.code||0))+1);
+const val=id=>$("#"+id)?.value.trim()||"";
+const inp=(id,l,v="",h="",p="")=>`<label class="fl">${l}<input class="fi" id="${id}" value="${esc(v)}" placeholder="${esc(p)}">${h?`<small>${h}</small>`:""}</label>`;
+const swb=(on,a,v="")=>`<button class="sw ${on?"on":""}" data-adm="${a}" data-v="${esc(v)}" aria-label="Yoqish/o'chirish"></button>`;
+brand=function(){$("#brand").innerHTML=`${esc(CONFIG.BRAND_1)}<span>${esc(CONFIG.BRAND_2)}</span>`;$("#logo").innerHTML=`<img src="${esc(CONFIG.LOGO_URL||KP)}" alt="">`};
+const bannerHTML=()=>{const b=state.banner;return b.on?`<button class="adb" data-ad style="background-image:${b.img?`url('${esc(b.img)}')`:"none"}"><small>Reklama</small><span>${esc(b.text)}</span></button>`:""};
+
+/* — Obuna darvozasi — */
+const needGate=()=>!state.subOk&&state.channels.some(c=>c.on);
+function openGate(code){state.gcode=code;const g=$("#gate");
+ g.innerHTML=`<div class="gbox fade"><h3>Kinoni ochish uchun obuna bo'ling</h3><p>Kanallarga a'zo bo'ling, so'ng "Tekshirish" tugmasini bosing.</p>${state.channels.filter(c=>c.on).map(c=>`<div class="grow"><span>${esc(c.name)}</span>${state.visited.has(c.id)?'<b class="ok">✓ A\'zo</b>':`<button class="btn red sm" data-sub="${c.id}">Obuna</button>`}</div>`).join("")}<button class="btn red wide" data-chk="1">Tekshirish</button><button class="btn glass wide" data-gclose>Keyinroq</button></div>`;
+ g.classList.add("open")}
+async function checkSub(){const ch=state.channels.filter(c=>c.on);let ok;
+ if(state.demo)ok=ch.every(c=>state.visited.has(c.id));else{try{ok=(await api("/api/check-sub",{})).ok}catch{ok=false}}
+ if(!ok)return toast("❌ Hali hamma kanalga a'zo bo'lmadingiz");
+ state.subOk=true;store.set("subOk",true);$("#gate").classList.remove("open");toast("✅ Obuna tasdiqlandi");watch(state.gcode)}
+
+/* — Admin sahifasi — */
+function pageAdmin(){
+ const T=[["dash","📊 Panel"],["movies","🎬 Kinolar"],["add",state.edit?"✏️ Tahrir":"➕ Qo'shish"],["subs","🔒 Obuna"],["ad","📢 Reklama"],["reqs","📝 So'rovlar"],["msg","✉️ Xabar"],["set","⚙️ Sozlama"]];
+ const M=state.movies,e=state.edit?byCode(state.edit):null;let b="";
+ if(state.at==="dash"){const tv=M.reduce((s,m)=>s+m.views,0),top=[...M].sort((a,b)=>b.views-a.views).slice(0,5);
+  b=`<div class="stats" style="padding:0"><div class="stat"><b>${M.length}</b><span>Kino</span></div><div class="stat"><b>${fmt(tv)}</b><span>Ko'rish</span></div><div class="stat"><b>${state.reqs.length}</b><span>So'rov</span></div></div>
+  <div class="g2"><button class="btn red" data-adm="tab" data-v="add">➕ Kino qo'shish</button><button class="btn glass" data-adm="tab" data-v="msg">✉️ Xabar yuborish</button><button class="btn glass" data-adm="tab" data-v="subs">🔒 Majburiy obuna</button><button class="btn glass" data-adm="tab" data-v="ad">📢 Reklama</button></div>
+  <h2 style="font-size:17px">Eng ko'p ko'rilgan kinolar</h2>${top.map(m=>`<div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>${esc(m.code)} · ${esc(m.title)}</span><b>${fmt(m.views)}</b></div><div class="abar" style="width:${m.views/top[0].views*100}%"></div></div>`).join("")}`}
+ if(state.at==="movies")b=`<input class="fi" id="aq" type="search" placeholder="Nomi yoki kodi bo'yicha qidirish"><div class="fl"><small>🆕 — "Yangi" belgisini yoqish/o'chirish. ✏️ — tahrirlash. 🗑 — o'chirish.</small></div>
+  ${[...M].reverse().map(m=>`<div class="arow" data-s="${esc((m.title+" "+m.code).toLowerCase())}"><div class="ai"><b>${esc(m.title)}</b><small>Kod ${esc(m.code)} · ${m.year} · ${esc(m.genre)} · 👁 ${fmt(m.views)}</small></div><button data-adm="edit" data-v="${esc(m.code)}" aria-label="Tahrirlash">✏️</button><button data-adm="newt" data-v="${esc(m.code)}" aria-label="Yangi belgisi" style="opacity:${m.isNew?1:.4}">🆕</button><button data-adm="del" data-v="${esc(m.code)}" aria-label="O'chirish">🗑</button></div>`).join("")}
+  <label class="fl">Ko'p kinoni birdan qo'shish<textarea class="fi" id="csv" placeholder="kod,nomi,yil,janr,reyting,davomiylik,poster havolasi&#10;201,Kino nomi,2026,Jangari,8.1,120,https://..."></textarea></label><button class="btn glass" data-adm="csv">📥 Ro'yxatni yuklash</button>`;
+ if(state.at==="add")b=`<h2 style="font-size:18px">${e?"Kinoni tahrirlash":"Yangi kino qo'shish"}</h2>
+  ${inp("af_poster","Poster rasmi havolasi",e?.poster,"Rasmni postimages.org ga yuklang, \"Direct link\"ni shu yerga qo'ying. Bo'sh = rangli poster.","https://i.postimg.cc/.../poster.jpg")}
+  ${inp("af_title","Kino nomi",e?.title)}<div class="g2">${inp("af_code","Kino kodi",e?.code||nextCode(),"Avtomatik berildi")}${inp("af_year","Yil",e?.year||2026)}</div>
+  <div class="g2"><label class="fl">Janr<select class="fi" id="af_genre">${GENRES.map(g=>`<option ${e?.genre===g.n?"selected":""}>${g.n}</option>`).join("")}</select></label>${inp("af_rate","Reyting (0-10)",e?.rating||7.5)}</div>
+  <div class="g2">${inp("af_dur","Davomiyligi (daqiqa)",e?.duration||110)}${inp("af_file","Video (file_id yoki havola)",e?.file,"Botga yuklangan video")}</div>
+  <label class="fl">Tavsif<textarea class="fi" id="af_desc">${esc(e?.desc||"")}</textarea></label>
+  <label class="arow"><div class="ai">"Yangi" belgisi</div><input type="checkbox" id="af_new" ${(e?.isNew??true)?"checked":""}></label>
+  <button class="btn red wide" data-adm="save">💾 Saqlash</button>`;
+ if(state.at==="subs")b=`<div class="fl"><small>Foydalanuvchi kinoni ko'rishdan oldin shu kanallarga a'zo bo'lishi kerak. Bot har bir kanalda ADMIN bo'lishi shart, aks holda tekshira olmaydi.</small></div>
+  ${state.channels.map(c=>`<div class="arow"><div class="ai"><b>${esc(c.name)}</b><small>${esc(c.url)}</small></div>${swb(c.on,"subon",c.id)}<button data-adm="subdel" data-v="${c.id}" aria-label="O'chirish">🗑</button></div>`).join("")||'<div class="fl"><small>Kanal yo\'q — obuna talab qilinmaydi.</small></div>'}
+  <h2 style="font-size:17px">Kanal qo'shish</h2>${inp("sb_n","Kanal nomi","","","Kinodagila rasmiy")}${inp("sb_u","Kanal havolasi","","","https://t.me/kanal_nomi")}<button class="btn red wide" data-adm="subadd">➕ Qo'shish</button>`;
+ if(state.at==="ad"){const a=state.banner;b=`<div class="arow"><div class="ai"><b>Bosh sahifadagi reklama</b><small>Yoqilgan bo'lsa ko'rinadi</small></div>${swb(a.on,"adon")}</div>${bannerHTML()}${inp("ad_t","Reklama matni",a.text)}${inp("ad_i","Banner rasmi havolasi",a.img,"Tavsiya: 1000×260","https://...")}${inp("ad_u","Bosilganda ochiladigan havola",a.url,"","https://t.me/...")}<button class="btn red wide" data-adm="adsave">💾 Saqlash</button>`}
+ if(state.at==="reqs")b=state.reqs.map(r=>`<div class="arow"><div class="ai">${esc(r.text)}<small>${esc(r.by)}</small></div><button data-adm="reqdone" data-v="${r.id}" aria-label="Bajarildi">✅</button></div>`).join("")||'<div class="empty">So\'rovlar yo\'q</div>';
+ if(state.at==="msg")b=`<label class="fl">Barcha foydalanuvchilarga xabar<textarea class="fi" id="am_t" placeholder="Masalan: Yangi kinolar qo'shildi! Kodlar: 201, 202"></textarea></label><button class="btn red wide" data-adm="send">✉️ Yuborish</button>`;
+ if(state.at==="set")b=`${inp("s_logo","Logo rasmi havolasi",CONFIG.LOGO_URL,"Bo'sh = standart logo (K belgisi). PNG, shaffof fon.","https://...")}<div class="g2">${inp("s_b1","Nom (oq qism)",CONFIG.BRAND_1)}${inp("s_b2","Nom (qizil qism)",CONFIG.BRAND_2)}</div>${inp("s_bot","Bot username",CONFIG.BOT_USERNAME)}${inp("s_sup","Aloqa havolasi",CONFIG.SUPPORT_URL)}<button class="btn red wide" data-adm="setsave">💾 Saqlash</button>
+  <h2 style="font-size:17px">Adminlar</h2>${state.admins.map((a,i)=>`<div class="arow"><div class="ai">${esc(a)}</div>${i?`<button data-adm="admdel" data-v="${i}" aria-label="Olib tashlash">🗑</button>`:"<small>Egasi</small>"}</div>`).join("")}<div class="g2">${inp("s_adm","","","","@username yoki ID")}<button class="btn glass" data-adm="admadd" style="margin-top:0;align-self:end;height:46px">➕ Qo'shish</button></div>
+  <button class="btn glass wide" data-adm="bak">📋 Zaxira nusxa (JSON)</button>`;
+ return `<div class="list-h">🛠 Admin panel</div><div class="chips" style="padding-top:0">${T.map(t=>`<button class="chip ${state.at===t[0]?"on":""}" data-adm="tab" data-v="${t[0]}">${t[1]}</button>`).join("")}</div><div class="ab" style="margin-top:14px">${b}${state.demo?'<div class="fl"><small>DEMO: o\'zgarishlar shu qurilmada saqlanadi. Server ulansa hammaga ishlaydi.</small></div>':""}</div>`}
+function adminAct(a,v){const m=v?byCode(v):null;
+ if(a==="tab"){state.at=v;if(v!=="add")state.edit=null}
+ else if(a==="edit"){state.edit=v;state.at="add"}
+ else if(a==="del"){if(!confirm("Kino o'chirilsinmi?"))return;state.movies=state.movies.filter(x=>x.code!==v);persist("movies",state.movies)}
+ else if(a==="newt"){m.isNew=!m.isNew;persist("movies",state.movies)}
+ else if(a==="save"){const code=val("af_code"),title=val("af_title");if(!code||!title)return toast("Kod va nomini yozing");
+  const old=state.edit&&byCode(state.edit);if(state.movies.some(x=>x.code===code&&x!==old))return toast("Bu kod band");
+  const o={code,title,year:+val("af_year")||2026,genre:val("af_genre"),rating:Math.min(10,+val("af_rate")||7),duration:+val("af_dur")||100,desc:val("af_desc")||"Tavsif kiritilmagan",poster:val("af_poster"),file:val("af_file"),isNew:$("#af_new").checked};
+  if(old)Object.assign(old,o);else state.movies.push({...o,views:0,added:state.movies.length});
+  persist("movies",state.movies);toast("✅ Saqlandi: "+title);state.edit=null;state.at="movies"}
+ else if(a==="csv"){let n=0,x=0;(val("csv")||"").split("\n").forEach(r=>{const p=r.split(",").map(s=>s.trim());if(p.length<4||!p[0]||state.movies.some(s=>s.code===p[0])){if(r.trim())x++;return}
+   state.movies.push({code:p[0],title:p[1],year:+p[2]||2026,genre:p[3],rating:+p[4]||7,duration:+p[5]||100,desc:"Tavsif kiritilmagan",poster:p[6]||"",isNew:true,views:0,added:state.movies.length});n++});
+  persist("movies",state.movies);toast(n+" ta qo'shildi, "+x+" ta xato")}
+ else if(a==="subadd"){const name=val("sb_n"),url=val("sb_u");if(!name||!url)return toast("Nom va havolani yozing");state.channels.push({id:Date.now(),name,url,on:true});persist("channels",state.channels)}
+ else if(a==="subon"){const c=state.channels.find(x=>x.id==v);c.on=!c.on;persist("channels",state.channels)}
+ else if(a==="subdel"){state.channels=state.channels.filter(x=>x.id!=v);persist("channels",state.channels)}
+ else if(a==="adon"){state.banner.on=!state.banner.on;persist("banner",state.banner)}
+ else if(a==="adsave"){state.banner={...state.banner,text:val("ad_t"),img:val("ad_i"),url:val("ad_u")};persist("banner",state.banner);toast("✅ Reklama yangilandi")}
+ else if(a==="reqdone"){state.reqs=state.reqs.filter(x=>x.id!=v);persist("reqs",state.reqs)}
+ else if(a==="send"){const t=val("am_t");if(!t)return toast("Xabar matnini yozing");
+  if(state.demo)return toast("✉️ DEMO: xabar barcha foydalanuvchilarga yuboriladi");api("/api/admin/broadcast",{text:t}).then(()=>toast("✅ Xabar yuborildi")).catch(()=>toast("⚠️ Xatolik"));return}
+ else if(a==="setsave"){Object.assign(CONFIG,{LOGO_URL:val("s_logo"),BRAND_1:val("s_b1")||"KINO",BRAND_2:val("s_b2")||"DAGILA",BOT_USERNAME:val("s_bot"),SUPPORT_URL:val("s_sup")||"https://t.me/"});
+  persist("cfg",{LOGO_URL:CONFIG.LOGO_URL,BRAND_1:CONFIG.BRAND_1,BRAND_2:CONFIG.BRAND_2,BOT_USERNAME:CONFIG.BOT_USERNAME,SUPPORT_URL:CONFIG.SUPPORT_URL});brand();toast("✅ Saqlandi")}
+ else if(a==="admadd"){const x=val("s_adm");if(x){state.admins.push(x);persist("admins",state.admins)}}
+ else if(a==="admdel"){state.admins.splice(+v,1);persist("admins",state.admins)}
+ else if(a==="bak"){navigator.clipboard?.writeText(JSON.stringify({movies:state.movies,channels:state.channels,banner:state.banner}));return toast("📋 Zaxira nusxa olindi")}
+ render()}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-sub],[data-chk],[data-gclose],[data-adm],[data-ad],[data-act='adm']");if(!t)return;const d=t.dataset;
+ if(d.sub){const c=state.channels.find(x=>x.id==d.sub);state.visited.add(c.id);tg?.openTelegramLink?tg.openTelegramLink(c.url):window.open(c.url,"_blank");openGate(state.gcode)}
+ else if(d.chk!==undefined)checkSub();
+ else if(t.hasAttribute("data-gclose"))$("#gate").classList.remove("open");
+ else if(d.adm)adminAct(d.adm,d.v);
+ else if(t.hasAttribute("data-ad")){if(state.banner.url)window.open(state.banner.url,"_blank")}
+ else if(d.act==="adm"){state.isAdmin=!state.isAdmin;render()}});
+
+/* ═══════════════ BOSHLASH ═══════════════ */
+function brand(){
+  $("#brand").innerHTML=`${esc(CONFIG.BRAND_1)}<span>${esc(CONFIG.BRAND_2)}</span>`;
+  $("#logo").innerHTML = CONFIG.LOGO_URL ? `<img src="${esc(CONFIG.LOGO_URL)}" alt="">`
+    : `<svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm6 4v8l7-4z"/></svg>`;
+}
+async function boot(){
+  tg?.ready(); tg?.expand();
+  try{ tg?.setHeaderColor("#0a0a0f"); tg?.setBackgroundColor("#0a0a0f"); tg?.disableVerticalSwipes?.(); }catch{}
+  brand(); renderNav();
+  $("#view").innerHTML=`<div style="padding:16px"><div class="sk" style="aspect-ratio:16/11;border-radius:22px"></div>
+    <div style="display:flex;gap:12px;margin-top:24px">${'<div class="sk" style="width:128px;aspect-ratio:2/3"></div>'.repeat(3)}</div></div>`;
+  try{
+    if(state.demo){state.movies=store.get("movies",D)}else{state.movies=await api("/api/movies");try{const c=await api("/api/config");Object.assign(CONFIG,c.cfg||{});state.channels=c.channels||[];state.banner=c.banner||state.banner;state.isAdmin=!!c.admin;state.admins=c.admins||[];state.reqs=c.reqs||[];brand()}catch{}}
+    if(state.demo) await new Promise(r=>setTimeout(r,500));
+  }catch{ state.movies=[]; toast("⚠️ Ma'lumot yuklanmadi"); }
+  // /start dan kelgan kod orqali kino ochish: ?code=101 yoki startapp=101
+  const sp = new URLSearchParams(location.search).get("code") || tg?.initDataUnsafe?.start_param;
+  render();
+  if(sp && byCode(sp)) openMovie(sp);
+}
+boot();
+</script>
+</body>
+</html>
