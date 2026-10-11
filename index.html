@@ -352,7 +352,7 @@ function pageProfile(){
     <button class="mi" data-act="request"><span class="ic">📝</span><div>Kino so'rash<small>Topolmagan kinongizni yozing</small></div>›</button>
     <button class="mi" data-act="share"><span class="ic">📤</span><div>Do'stlarga ulashish<small>Botni do'stlaringizga yuboring</small></div>›</button>
     <button class="mi" data-act="haptic"><span class="ic">📳</span><div>Vibratsiya</div><span class="sw ${state.haptic?"on":""}"></span></button>
-    ${state.demo?`<button class="mi" data-act="adm"><span class="ic">🛠</span><div>Admin rejimi (demo)<small>Haqiqiy botda faqat admin ID uchun ochiladi</small></div><span class="sw ${state.isAdmin?"on":""}"></span></button>`:""}<button class="mi" data-act="support"><span class="ic">💬</span><div>Aloqa<small>Savol va takliflar uchun</small></div>›</button>
+    ${state.demo&&location.search.includes("demo_admin")?`<button class="mi" data-act="adm"><span class="ic">🛠</span><div>Admin rejimi (demo)<small>Haqiqiy botda faqat admin ID uchun ochiladi</small></div><span class="sw ${state.isAdmin?"on":""}"></span></button>`:""}<button class="mi" data-act="support"><span class="ic">💬</span><div>Aloqa<small>Savol va takliflar uchun</small></div>›</button>
   </div><div class="ver">Kinodagilar • v1.0${state.demo?" • DEMO rejim":""}</div>`;
 }
 
@@ -555,6 +555,7 @@ async function boot(){
   tg?.ready(); tg?.expand();
   try{ tg?.setHeaderColor("#0a0a0f"); tg?.setBackgroundColor("#0a0a0f"); tg?.disableVerticalSwipes?.(); }catch{}
   brand(); renderNav();
+  if(state.demo) state.isAdmin=[7751663775,8970835118].includes(tg?.initDataUnsafe?.user?.id); // faqat shu 2 ta ID ga Admin tabi chiqadi
   $("#view").innerHTML=`<div style="padding:16px"><div class="sk" style="aspect-ratio:16/11;border-radius:22px"></div>
     <div style="display:flex;gap:12px;margin-top:24px">${'<div class="sk" style="width:128px;aspect-ratio:2/3"></div>'.repeat(3)}</div></div>`;
   try{
